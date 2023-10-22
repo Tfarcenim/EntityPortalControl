@@ -2,17 +2,23 @@ buildscript {
     repositories {
         maven { url = 'https://maven.minecraftforge.net' }
         mavenCentral()
+        maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
     }
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
+        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
     }
 }
 apply plugin: 'java'
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
+apply plugin: 'org.spongepowered.mixin'
+
 
 archivesBaseName = "${mod_name}-forge-${minecraft_version}"
+
+
 
 minecraft {
     mappings channel: 'official', version: minecraft_version
@@ -29,6 +35,7 @@ minecraft {
             workingDirectory project.file('run')
             ideaModule "${rootProject.name}.${project.name}.main"
             taskName 'Client'
+            arg "-mixin.config="+mod_id+".mixins.json"
             property 'mixin.env.remapRefMap', 'true'
             property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
             mods {
@@ -43,6 +50,7 @@ minecraft {
             workingDirectory project.file('run')
             ideaModule "${rootProject.name}.${project.name}.main"
             taskName 'Server'
+            arg "-mixin.config="+mod_id+".mixins.json"
             property 'mixin.env.remapRefMap', 'true'
             property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
             mods {
@@ -56,7 +64,8 @@ minecraft {
         data {
             workingDirectory project.file('run')
             ideaModule "${rootProject.name}.${project.name}.main"
-            args '--mod', mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
+            args '--mod', mod_id, '--all', '--output', project(":Common").file('src/generated/resources/'),
+                    '--existing', project(":Common").file('src/main/resources/')
             taskName 'Data'
             property 'mixin.env.remapRefMap', 'true'
             property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
@@ -70,11 +79,19 @@ minecraft {
     }
 }
 
+mixin {
+    add(sourceSets.main, "${mod_id}.refmap.json")
+
+    config("${mod_id}.mixins.json")
+    //  config("${mod_id}.forge.mixins.json")
+}
+
 sourceSets.main.resources.srcDir 'src/generated/resources'
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     compileOnly project(":Common")
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 
 tasks.withType(JavaCompile) {

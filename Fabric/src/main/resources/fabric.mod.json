@@ -19,7 +19,7 @@
     "environment": "*",
     "entrypoints": {
       "main": [
-        "com.example.examplemod.ExampleMod"
+        "tfar.entityportalcontrol.ExampleMod"
       ]
     },
     "mixins": [
